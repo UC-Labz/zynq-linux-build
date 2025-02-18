@@ -1,0 +1,193 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 19,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "default",
+      "displayName": "Default config",
+      "description": "Default build options for all builds",
+      "generator": "Unix Makefiles",
+      "binaryDir": "jot.build",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "MAKE": "make",
+        "ARCHIVES": "${sourceDir}/ext-sw",
+        "DOWNLOADS": "${sourceDir}/sys/dl",
+        "LWCLU_OPT_DIR": "${sourceDir}/opt",
+        "LWCLU_PKG_DIR": "${sourceDir}/opt/packages",
+        "LWCLU_SYSROOT": "${sourceDir}/opt/plnx_aarch64",
+        "FSBL_DIR":"${sourceDir}/sys/board/rms/hppi/fsbl",
+	"FSBL_FLAGS": "-Wno-error=date-time;-Wno-builtin-macro-redefined;-D__DATE__=\"today\";-D__TIME__=\"now\";-Wl,--build-id=none;-n"
+      }
+    },
+    {
+      "name": "single_build",
+      "displayName": "Single build configuration",
+      "inherits": "default",
+      "hidden": true,
+      "cacheVariables": {
+        "SKIP_HPPI_PASS_THRU": "ON",
+        "SKIP_HOST_PASS_THRU": "ON",
+        "SKIP_SF2_PASS_THRU": "ON",
+        "SKIP_A53_PASS_THRU": "ON",
+        "SKIP_MB16_PASS_THRU": "ON",
+        "SKIP_R5_PASS_THRU": "ON",
+        "SKIP_PMU_PASS_THRU": "ON"
+      }
+    },
+    {
+      "name": "Host",
+      "displayName": "Host x86 config",
+      "description": "x86 tools required",
+      "inherits": "single_build",
+      "binaryDir": "build.host",
+      "cacheVariables": {
+        "BUILD_HOST": "ON",
+        "BUILD_OPT_LIBS": "ON",
+        "LWCLU_TARGET": "host"
+      }
+    },
+    {
+      "name": "Zynq",
+      "displayName": "Zynq 7000 A9 config",
+      "description": "A9 Linux build",
+      "inherits": "single_build", 
+      "binaryDir": "build.a9",
+      "toolchainFile": "${sourceDir}/Toolchain-A9.cmake",
+      "cacheVariables": {
+        "BUILD_LINUX": "ON",
+	"CMAKE_VERBOSE_MAKEFILE": "ON",
+	"SF2_FLAGS": "-s;-mcpu=cortex-m3;-mthumb;-Os;-fmessage-length=0;-fsigned-char;-ffunction-sections;-fdata-sections",
+	"SPECS_FLAGS": "-std=gnu11;--specs=cmsis.specs",
+	"ASSEMBLER_FLAGS": "-x;assembler-with-cpp",
+        "ZIP_FILE": "${sourceDir}/SF2/LWCLU_firmware.zip",
+        "TCL_FILE": "${sourceDir}/SF2/hex2stp.tcl",
+        "HW_PLATFORM": "${sourceDir}/SF2/hw_platform",
+	"CMSIS": "${sourceDir}/SF2/hw_platform/CMSIS",
+	"HAL": "${sourceDir}/SF2/hw_platform/hal/CortexM3/GNU",
+	"DRIVERS": "${sourceDir}/SF2/hw_platform/drivers",
+	"VM_COMMON": "${sourceDir}/vm_common"
+      },
+	"environment": {
+	    "XILINX_VITIS": "/home/jesse/tools/Xilinx/Vitis/2022.2",
+	    "SCIP": "/projs/jvdev_linux/lwclu_esw/apps/softconsole_6.0",
+	    "SC_INSTALL_DIR": "$env{SCIP}",
+	    "LIBVER": "12.4",
+	    "ALSD": "/apps/libero_$env{LIBVER}",
+	    "LM_LICENSE_FILE": "27002@synopsys.lic.tuc.us.ray.com:1702@actel.lic.tuc.us.ray.com",
+	    "ACTEL_VER": "$env{LIBVER}",
+	    "ALSDIR": "$env{ALSD}",
+	    "ACTEL_LINK": "/libs/microsemi/vault",
+	    "VAULT": "$penv{HOME}/.actel/vault",
+	    "VAULT_VERS": "libero_$env{LIBVER}",
+	    "PATH": "$env{XILINX_VITIS}/bin:$env{XILINX_VITIS}/gnu/aarch32/lin/gcc-arm-linux-gnueabi/bin:$env{XILINX_VITIS}/gnu/aarch32/lin/gcc-arm-none-eabi/bin:$penv{PATH}"
+      }
+    },
+    {
+      "name": "ZUP-Linux",
+      "displayName": "Hppi A53 Linux / CSCI config",
+      "description": "A53 sysroot, CSCIs, and Linux",
+      "inherits":"single_build",
+      "binaryDir": "build.csci",
+      "toolchainFile": "${sourceDir}/Toolchain-ZUP.cmake",
+      "cacheVariables": {
+        "BUILD_HPPI": "ON",
+        "BUILD_OPT_LIBS": "ON",
+        "LWCLU_TARGET": "hppi"
+      }
+    },
+    {
+      "name": "ZUP-A53",
+      "displayName": "Hppi A53 bare metal config",
+      "description": "A53 BSP, FSBL, and ATF",
+      "inherits": "single_build",
+      "binaryDir": "build.a53",
+      "toolchainFile": "${sourceDir}/Toolchain-A53.cmake",
+      "cacheVariables": {
+        "A53_FLAGS": "-DARMA53_64;-Wall;-march=armv8-a;-O2;-s;-Os;-fmessage-length=0;-flto;-ffat-lto-objects",
+        "BUILD_A53": "ON"
+      } 
+    },
+    {
+      "name": "ZUP-MB",
+      "displayName": "Hppi PMUFW config",
+      "description": "MicroBlaze-16",
+      "inherits": "single_build",
+      "binaryDir": "build.mb",
+      "toolchainFile":"${sourceDir}/Toolchain-MB.cmake",
+      "cacheVariables": {
+	"MB_FLAGS":"-nostartfiles;-Wall;-O2;-fmessage-length=0;-Os;-flto;-ffat-lto-objects;-Wno-error=date-time;-Wno-builtin-macro-redefined;-D__DATE__=\"today\";-D__TIME__=\"now\";-mcpu=v9.2;-mlittle-endian;-mxl-barrel-shift;-mxl-pattern-compare;-mxl-soft-mul;-Wl,--no-relax;-Wl,--gc-sections;-ffunction-sections;-fdata-sections",
+	"PMUFW_DIR":"${sourceDir}/sys/board/rms/hppi/pmufw",
+	"BUILD_MB": "ON"
+      }		     
+    },
+    {
+      "name": "ZUP-R5",
+      "displayName": "Hppi R5 bare metal config",
+      "description": "R5 BSP, FSBL, and bare metal apps",
+      "inherits": "single_build",
+      "binaryDir": "build.r5",
+      "toolchainFile": "${sourceDir}/Toolchain-R5.cmake",
+      "cacheVariables": {
+        "R5_FLAGS":"-DARMR5;-Wall;-s;-Os;-fmessage-length=0;-mcpu=cortex-r5;-mfloat-abi=hard;-mfpu=vfpv3-d16;-flto;-ffat-lto-objects;-Wl,--build-id=none",
+        "BUILD_R5":"ON",
+	"R5_APPS_DIR":"${sourceDir}/sys/board/rms/hppi/R5-apps"
+      } 
+    },
+    {
+      "name": "ZUP-csci-dev",
+      "displayName": "Hppi A53 csci development with Eclipse",
+      "description": "Config for developers",
+      "inherits": "ZUP-Linux",
+      "generator": "Eclipse CDT4 - Unix Makefiles",
+      "cacheVariables": {
+	"CMAKE_BUILD_TYPE": "Debug"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "kernel",
+      "displayName": "build hex, stp, & job file",
+      "description": "A9 build target",
+	"configurePreset": "Zynq",
+	"environment": {
+	    "ARCH": "arm",
+	    "CROSS_COMPILE": "arm-linux-gnueabihf-"
+	}
+    },
+    {
+      "name": "opt-libs",
+      "displayName": "build opt libs for Host",
+      "description": "set up dependency libs",
+      "configurePreset": "Host",
+      "targets": ["opt_libs"]
+    },
+    {
+      "name":"a53",
+      "displayName": "build FSBL & BSP",
+      "configurePreset": "ZUP-A53",
+      "targets":"fsbl-a53"
+    },       
+    {
+      "name": "sim",
+      "displayName": "build sim tactical & maint csci",
+      "description": "simulation build",
+      "inherits": "opt-libs",
+      "targets": [ "sim_test", "maint_sim" ]
+    },
+    {
+      "name": "csci",
+      "displayName": "build tactical, maint csci, & train_csci",
+      "description": "hppi build",
+      "configurePreset": "ZUP-Linux",
+      "inherits": "opt-libs",
+      "targets": [ "tactical_test", "maint_csci", "train_csci" ]
+    }
+  ] 
+}
