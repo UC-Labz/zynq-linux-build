@@ -1,7 +1,4 @@
-# /**
-# --------------------------------------------------------------------------------
-# UNCLASSIFIED - UNLIMITED RIGHTS
-# -------------------------------------------------------------------------------
+
 # find the appropriate compiler
 find_program( CMAKE_CXX_COMPILER arm-linux-gnueabihf-g++ )
 if( NOT CMAKE_CXX_COMPILER )
